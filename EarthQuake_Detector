@@ -1,0 +1,59 @@
+const uint8_t CLOCK_PIN {11U};
+const uint8_t LATCH_PIN {12U};
+const uint8_t DS_PIN {13U};
+const uint8_t SW_PIN {40U};
+const uint8_t LED_PIN {42U};
+const uint8_t BUZZ_PIN {44U};
+const uint8_t COUNT_PIN {46U};
+static uint8_t cnt {0U};
+
+void setup() {
+  Serial.begin(115200UL);
+  pinMode(DS_PIN, OUTPUT);
+  pinMode(LATCH_PIN, OUTPUT);
+  pinMode(CLOCK_PIN, OUTPUT);
+  pinMode(COUNT_PIN, INPUT_PULLUP);
+  pinMode(SW_PIN, INPUT_PULLUP);
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(BUZZ_PIN, OUTPUT);
+}
+
+void loop() {
+  bool cnt_state = digitalRead(COUNT_PIN);
+  bool sw_state = digitalRead(SW_PIN);
+  digitalWrite(LATCH_PIN, LOW);
+  if (!sw_state) {
+    cnt = 0;
+    digitalWrite(LED_PIN, LOW);
+    noTone(BUZZ_PIN);
+    digitalWrite(BUZZ_PIN, LOW);
+    return;
+  }
+  for (int i = 0; i < 8; i++) {
+    if (i < cnt) {
+      digitalWrite(DS_PIN, HIGH);
+    }
+    else {
+      digitalWrite(DS_PIN, LOW);
+    }
+    digitalWrite(CLOCK_PIN, HIGH);
+    digitalWrite(CLOCK_PIN, LOW);
+  }
+  digitalWrite(LATCH_PIN, HIGH);
+  if (cnt >= 8) {
+    digitalWrite(LED_PIN, HIGH);
+    tone(BUZZ_PIN, 700);
+    digitalWrite(BUZZ_PIN, HIGH);
+  }
+  else if (!cnt_state && cnt < 8) {
+    cnt++;
+    Serial.print(F("Richter Scale : "));
+    Serial.println(cnt);
+    digitalWrite(LED_PIN, LOW);
+    noTone(BUZZ_PIN);
+    digitalWrite(BUZZ_PIN, LOW);
+    delay(50UL);
+    while (!digitalRead(COUNT_PIN)) {}
+    delay(250UL);
+  }
+}
