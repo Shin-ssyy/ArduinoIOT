@@ -1,0 +1,47 @@
+const uint8_t pins[] {22, 23, 24, 25, 26, 27, 28, 29};
+const uint8_t numbers[] {
+  0b11111100, 0b01100000, 0b11011010, 0b11110010, 0b01100110, 0b10110110, 0b10111110, 0b11100000, 0b11111110, 0b11110110,
+};
+const uint8_t SW_PIN {2U};
+const uint8_t BUZZ_PIN {44U};
+static volatile bool alarm_state {false};
+
+void setup() {
+  Serial.begin(115200UL);
+  for(auto pin : pins) {
+    pinMode(pin, OUTPUT);
+  }
+  pinMode(BUZZ_PIN, OUTPUT);
+  pinMode(SW_PIN, INPUT);
+  attachInterrupt(digitalPinToInterrupt(SW_PIN), buttonInterrupt, FALLING);
+}
+
+void loop() {
+  for (auto number : numbers) {
+    for(uint8_t digit {0U}; digit < 8; ++digit){
+      if(bitRead(number, digit)) {
+        digitalWrite(pins[digit], HIGH);
+      } else {
+        digitalWrite(pins[digit], LOW);
+      }
+    }
+    if(alarm_state){
+      tone(BUZZ_PIN, 700U);
+      delay(100U);
+      noTone(BUZZ_PIN);
+    }
+    else if (!alarm_state) {
+      delay(100U);
+    }
+    delay(900U);
+  }
+}
+
+void buttonInterrupt() {
+  alarm_state = !alarm_state;
+  if (alarm_state) {
+    Serial.println(F("Alarm ON"));
+  } else {
+    Serial.println(F("Alarm OFF"));
+  }
+}
