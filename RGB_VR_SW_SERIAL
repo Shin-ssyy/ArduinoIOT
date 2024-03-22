@@ -1,0 +1,80 @@
+const uint8_t VR_PIN {A0};
+const uint8_t SW_PIN {2U};
+static uint8_t trg {0};
+static uint16_t red_value {0};
+static uint16_t green_value {0};
+static uint16_t blue_value {0};
+enum RGBLED {
+  RED = 8,
+  GREEN,
+  BLUE
+};
+
+void setup() {
+  Serial.begin(115200UL);
+  pinMode(VR_PIN, INPUT);
+  pinMode(RED, OUTPUT);
+  pinMode(GREEN, OUTPUT);
+  pinMode(BLUE, OUTPUT);
+  attachInterrupt(digitalPinToInterrupt(SW_PIN), buttonInterrupt, FALLING);
+}
+
+void loop() {
+  while (Serial.available()) {
+    red_value = Serial.parseInt();
+    green_value = Serial.parseInt();
+    blue_value = Serial.parseInt();
+    if(Serial.read() == '\n') {
+      analogWrite(RED, red_value);
+      analogWrite(GREEN, green_value);
+      analogWrite(BLUE, blue_value);
+    }
+    delay(10UL);
+  }
+  
+  uint16_t vr_value {analogRead(VR_PIN)};
+  Serial.print(F("VR Value : "));
+  Serial.println(vr_value);
+  uint16_t mapped_value {map(vr_value, 0, 1023, 0, 255)};
+  Serial.print(F("Mapping Value : "));
+  Serial.println(mapped_value);
+  
+  switch (trg) {
+   case 0:
+    analogWrite(RED, mapped_value);
+    analogWrite(GREEN, mapped_value);
+    analogWrite(BLUE, mapped_value);
+    break;
+  case 1:
+    analogWrite(RED, mapped_value);
+    analogWrite(GREEN, 0);
+    analogWrite(BLUE, 0);
+    break;
+  case 2:
+    analogWrite(RED, 0);
+    analogWrite(GREEN, mapped_value);
+    analogWrite(BLUE, 0);
+    break;
+  case 3:
+    analogWrite(RED, 0);
+    analogWrite(GREEN, 0);
+    analogWrite(BLUE, mapped_value);
+    break;
+  case 4:
+    analogWrite(RED, red_value);
+    analogWrite(GREEN, green_value);
+    analogWrite(BLUE, blue_value);
+    break;
+  }
+  delay(200UL);
+}
+
+void buttonInterrupt() {
+  trg += 1;
+  if (trg > 4) {
+   trg = 0;
+  }
+  Serial.print("Trigger : ");
+  Serial.println(trg);
+  delay(500UL);
+}
