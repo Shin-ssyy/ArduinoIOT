@@ -1,0 +1,28 @@
+const uint8_t SW_PIN {2U};
+const uint8_t LED_PIN {42U};
+static uint8_t cnt {0};
+static bool sw_state {false};
+
+void setup() {
+  Serial.begin(115200UL);
+  pinMode(SW_PIN, INPUT);
+  pinMode(LED_PIN, OUTPUT);
+}
+
+void loop() {
+  sw_state = digitalRead(SW_PIN);
+  if (!sw_state) {
+    delay(50UL);
+    sw_state = digitalRead(SW_PIN);
+    if (!sw_state) {
+      cnt += 1;
+      Serial.println(cnt);
+      delay(50UL);
+      digitalWrite(LED_PIN, HIGH);
+    }
+    while (!digitalRead(SW_PIN)) {
+    }
+    delay(50UL);
+  }
+  digitalWrite(LED_PIN, LOW);
+}
