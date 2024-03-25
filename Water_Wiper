@@ -1,0 +1,35 @@
+const uint8_t WATER_SENSOR {A14};
+const uint8_t SERVO_PIN {3U};
+void setup() {
+  pinMode(WATER_SENSOR, INPUT);
+  pinMode(SERVO_PIN, OUTPUT);
+  Serial.begin(115200UL);
+}
+
+void loop() {
+  uint16_t water_value = analogRead(WATER_SENSOR);
+  Serial.print(F("Water Level : "));
+  Serial.println(water_value);
+  if(water_value > 500) {
+    water_value = 500;
+  }
+  uint16_t mapped_value {map(water_value, 50, 500, 1500, 0)};
+  Serial.print(F("Mapped Level : "));
+  Serial.println(mapped_value);
+
+  if (water_value > 50) {
+    for(int i {0}; i < 256; i+=5)
+    {
+      analogWrite(SERVO_PIN, i);
+      delay(15UL);
+    }
+    delay(20UL);
+    for(int i {255}; i >= 0 ; i-=5)
+    {
+      analogWrite(SERVO_PIN, i);
+      delay(15UL);
+    }
+    delay(mapped_value);
+  }
+  delay(100UL);
+}
