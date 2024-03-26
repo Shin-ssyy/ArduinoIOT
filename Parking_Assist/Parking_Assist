@@ -1,0 +1,61 @@
+#include "HCSR04.h"
+#include "DHT.h"
+
+enum ULTRASONIC {
+  TRIGGER = 32U,
+  ECHO = 34U,
+  BUZZ = 44U,
+  TEMP_HUMID_PIN = A2
+};
+
+class UltraSonicDistanceSensor ultra_sonic(TRIGGER, ECHO);
+class DHT dht(TEMP_HUMID_PIN, 11);
+static float temperature {0.0F};
+static float distance {0.0F};
+static float distance_warn {0.0F};
+
+void setup() {
+  Serial.begin(115200UL);
+  Serial1.begin(9600UL);
+  dht.begin();
+  pinMode(BUZZ, OUTPUT);
+}
+
+void loop() {
+  temperature = dht.readTemperature();
+  distance = ultra_sonic.measureDistanceCm(temperature);
+  distance_warn = distance;
+  if(distance_warn > 70.0F) {
+    distance_warn = 70.0F;
+  }
+  float mapped_value {map(distance_warn, 0, 70, 0, 700)};
+  if(400.0F < distance or distance < 0.0F) {
+    Serial.println(F("Out of ranges"));
+    Serial1.println(F("Out of ranges"));
+  }
+  else {
+    Serial.print(F("Distance : "));
+    Serial.println(distance + String(" CM"));
+    Serial.println(mapped_value);
+    Serial1.print(F("Distance : "));
+    Serial1.println(distance + String(" CM"));
+  }
+  if(700 > mapped_value and mapped_value > 100) {
+    tone(BUZZ, 700);
+    delay(100UL);
+    noTone(BUZZ);
+  }
+  else if(mapped_value <= 100) {
+    tone(BUZZ, 700);
+    Serial.println(F("WARNING! TOO CLOSE!"));
+    Serial1.println(F("WARNING! TOO CLOSE!"));
+    while (mapped_value <= 100) {
+      distance = ultra_sonic.measureDistanceCm(temperature);
+      distance_warn = distance;
+      mapped_value = map(distance_warn, 0, 70, 0, 700);
+      delay(50UL);
+    }
+    noTone(BUZZ);
+  }
+  delay(mapped_value);
+}
