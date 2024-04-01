@@ -15,7 +15,7 @@ enum PROJECT_CAR {
   RELAY = 22U,
   IR,
   TRIGGER, //Ultrasonic
-  ECHO, //Ultrasonil
+  ECHO, //Ultrasonic
   BUZZ,
   DHT = A0,
   JOYSTICKX= A1,
@@ -144,6 +144,9 @@ void gearR() {
     while (distance_mapped_value <= 100) {
       distance = ultra_sonic.measureDistanceCm(temperature);
       distance_warn = distance;
+      if(distance_warn > 70.0F) {
+      distance_warn = 70.0F;
+      }
       distance_mapped_value = map(distance_warn, 0, 70, 0, 700);
       delay(50UL);
     }
@@ -194,7 +197,6 @@ void irCheck() {
     irrecv.start(10);
   }
 }
-
 void rfidCheck() {
   if(!mfrc522.PICC_IsNewCardPresent())
     return;
@@ -235,7 +237,6 @@ void rfidCheck() {
     }
   }
 }
-
 void servoJoystick() {
   x_value = analogRead(JOYSTICKX);
   if(x_value > 1023) {
@@ -247,7 +248,6 @@ void servoJoystick() {
   Serial1.println(joyX_mapped_value);
   delay(30UL);
 }
-
 void swInterrupt() {
   sw1_state = digitalRead(SW1);
   if (!sw1_state) {
@@ -293,7 +293,6 @@ void swInterrupt() {
     delay(50UL);
   }
 }
-
 void lcdDisplay() {
   lcd.clear();
   lcd.setCursor(0, 0);
